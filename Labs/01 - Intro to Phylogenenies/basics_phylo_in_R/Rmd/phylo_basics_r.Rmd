@@ -1,0 +1,138 @@
+---
+title: "Read, Visualize, Manipulate, and Export Trees"
+author: "Jose Eduardo Meireles"
+date: "1/30/2020"
+output: 
+    pdf_document:
+        toc: true
+        fig_caption: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = ".." )
+```
+
+# Setup
+
+## Install packages
+
+If you do not already have these three packages installed, simply run:
+
+```{r packages, eval = FALSE}
+install.packages("ape")       # work horse of phylogenetic stuff in R
+install.packages("phytools")  # lots of functionality for analyses and viz
+install.packages("rotl")      # interface with open tree of life
+```
+
+## Load packages
+
+```{r libs, message = FALSE, eval = TRUE}
+library("ape")     
+library("phytools") 
+library("rotl")    
+```
+
+# Reading Trees
+
+## Types of tree file
+
+There are two major file formats for trees -- **Newick** (extension .tre) and **Nexus** (extension .nex). 
+
+**Newick** is simply a parenthetical statement. For example ((A, B), C) says that A and B are sister to each other and they, as a group, are sister to C. Usually, branch length information is also written in the file. 
+
+**1.** Go to our `basics_phylo_in_R` R project, then to the `data` folder, and open the **mock_tree.tre** file using your text editor. Try to understand the file.
+
+**Nexus** encodes the newick tree inside it, but can include a lot more information, such as DNA sequences, morphology, or ecological data. Open the **poecilanthe.nex** file with your text editor and find where the tree is.
+
+## Importing trees from a file
+
+Now let's read the *mock_tree.tre* and the *poecilanthe.nex* into R. Here's how you do it:
+
+```{r reading_trees}
+mock_tree   = read.tree("data/mock_tree.tre")
+poecilanthe = read.nexus("data/poecilanthe.nex")
+```
+
+These objects are known as "phylo" objects. You can get a summary of a phylo object just by typing its name.
+
+```{r}
+mock_tree
+poecilanthe
+```
+
+## Plotting a tree
+
+The best way to explore a tree is to plot it out.
+```{r fig.height = 4, fig.width = 4}
+plot(mock_tree)
+```
+
+You can display that tree in many different ways. Look at the help function for plotting trees in ape `?plot.phylo` for more info. Here are a few examples:
+
+```{r}
+par(mfrow = c(2, 2), mar = c(1,1,1,1), oma = c(3,3,3,3))
+
+## No tip labels. Thicker branches
+plot(mock_tree, show.tip.label = FALSE, edge.width = 5)
+
+## Color tip labels and increase font size
+plot(mock_tree, tip.color = c("red", "green", "blue"), cex = 1.2)
+
+## Unrooted tree
+plot(mock_tree, type = "unrooted")
+
+## Circular tree. Color branches
+plot(poecilanthe, type = "fan", cex = 0.2, edge.color = "orange")
+```
+
+# Manipulating a tree
+
+You can change your tree in many different ways. A common thing to do is to drop an unwanted tip. Another one is to ladderize the tree.
+
+```{r}
+poecilanthe_mod = drop.tip(poecilanthe, "Ormosia_arborea")
+poecilanthe_mod = ladderize(poecilanthe_mod)
+
+par(mfrow = c(1, 2), mar = c(2,2,2,2))
+plot(poecilanthe, cex = 0.3)
+plot(poecilanthe_mod, cex = 0.3)
+```
+
+# Trees and Data
+
+We can also display data along with phylogenies, be the data gene expression, body size, or whatever else.
+
+In general, what we need is a vector or a matrix with the numerical data and the names of the tips. Here are two examples:
+
+```{r fig.height = 4, fig.width = 4}
+par(mfrow = c(1, 2), mar = c(5,5,5,5))
+body_size = c("A" = 38.6, "B" = 53.1, "C" = 12.87)
+
+plotTree.barplot(mock_tree, body_size)
+```
+
+# Stealing a tree
+
+Let's try to find trees that actually interest you. You can try to find a tree file for a specific study in [https://www.treebase.org/](https://www.treebase.org/).
+
+Another way of getting a tree is downloading it from the OpenTreeOfLife project.
+
+## Getting a tree from Open Tree of Life
+
+```{r fig.height = 4, fig.width = 4}
+library("rotl")
+
+taxa_raw   = c("Salmo", "Diadema", "Nautilus")
+taxa_clean = tnrs_match_names(taxa_raw)
+dudus_tree = tol_induced_subtree(ott_ids = taxa_clean$ott_id)
+
+plot(dudus_tree)
+```
+
+## Steal a tree on your own!
+
+1. Pick a group of interest (Oaks, Mammals, whatever)
+2. Download a phylogeny for  Using the Open Tree of Life interface 
+3. Explore the tree
+4. Make a figure out of it
